@@ -15,6 +15,9 @@ export function authenticate(req, res, next) {
   }
 }
 
+// Alias for authenticate
+export const authenticateToken = authenticate;
+
 export async function requireAdmin(req, res, next) {
   try {
     const user = await User.findById(req.user.id).lean();

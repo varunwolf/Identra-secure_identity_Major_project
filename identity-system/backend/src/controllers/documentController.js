@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { validationResult } from 'express-validator';
 import { encryptBufferWithHybridScheme, decryptBufferWithHybridScheme } from '../utils/rsa.js';
 import Document from '../models/Document.js';
+import User from '../models/User.js';
 import Activity from '../models/Activity.js';
 import { uploadDir } from '../utils/multer.js';
 
@@ -64,6 +65,17 @@ export async function downloadDocument(req, res, next) {
     const { id } = req.params;
     const doc = await Document.findOne({ _id: id, owner: req.user.id });
     if (!doc) return res.status(404).json({ message: 'Not found' });
+
+    // Check if biometric authentication is required
+    const user = await User.findById(req.user.id);
+    const requiresBiometric = user?.biometricEnabled && !req.headers['x-biometric-auth'];
+    
+    if (requiresBiometric) {
+      return res.status(401).json({ 
+        message: 'Biometric authentication required',
+        requiresBiometric: true 
+      });
+    }
 
     const ciphertext = fs.readFileSync(doc.path);
     const plain = decryptBufferWithHybridScheme(ciphertext, doc.authTag, doc.encryptedKey);

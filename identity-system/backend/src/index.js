@@ -1,8 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import http from 'http';
-import app from './app.js';
+import { app, server } from './app.js';
 import { connectToDatabase } from './config/db.js';
 import { ensureRsaKeysExist } from './utils/rsa.js';
 import { scheduleExpiryAlerts } from './utils/cron.js';
@@ -15,10 +14,13 @@ async function startServer() {
     await ensureRsaKeysExist();
     scheduleExpiryAlerts();
 
-    const server = http.createServer(app);
     server.listen(PORT, () => {
       // eslint-disable-next-line no-console
-      console.log(`Server running on port ${PORT}`);
+      console.log(`🚀 Server running on port ${PORT}`);
+      // eslint-disable-next-line no-console
+      console.log(`📱 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+      // eslint-disable-next-line no-console
+      console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
     });
   } catch (error) {
     // eslint-disable-next-line no-console
